@@ -1,0 +1,61 @@
+-- Drop tables if they exist (useful for testing)
+DROP TABLE IF EXISTS message_history;
+DROP TABLE IF EXISTS user_access;
+DROP TABLE IF EXISTS chat_rooms;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+
+CREATE TABLE roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password TEXT NOT NULL, -- Store hashed passwords (bcrypt recommended)
+    role_id INT NOT NULL REFERENCES roles(role_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE chat_rooms (
+    chat_room_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_access (
+    access_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    chat_room_id INT NOT NULL REFERENCES chat_rooms(chat_room_id) ON DELETE CASCADE,
+    is_active BOOLEAN DEFAULT TRUE,
+    UNIQUE (user_id, chat_room_id) -- Prevents duplicate entries
+);
+
+CREATE TABLE message_history (
+    message_id SERIAL PRIMARY KEY,
+    chat_room_id INT NOT NULL REFERENCES chat_rooms(chat_room_id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    message_content TEXT NOT NULL,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO roles (role_name) VALUES ('User'), ('Admin');
+
+-- Sample Data (Optional, for testing)
+INSERT INTO users (name, email, password, role_id) VALUES
+('Admin User', 'admin@example.com', 'hashed_password', 2), -- Admin
+('Regular User', 'user@example.com', 'hashed_password', 1); -- Normal User
+
+INSERT INTO chat_rooms (name) VALUES ('General Chat'), ('Project Discussion');
+
+INSERT INTO user_access (user_id, chat_room_id) VALUES
+(1, 1), -- Admin in General Chat
+(2, 1), -- User in General Chat
+(2, 2); -- User in Project Discussion
+
+INSERT INTO message_history (chat_room_id, user_id, message_content) VALUES
+(1, 1, 'Welcome to General Chat!'),
+(1, 2, 'Hello everyone!'),
+(2, 2, 'Let’s discuss the project timeline.');
