@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 // Page Imports:
 import LoginPage from "./pages/login";
+import AdminHome from "./pages/admin-home";
+import UserHome from "./pages/user-home";
 
 const App: React.FC = () => {
 
